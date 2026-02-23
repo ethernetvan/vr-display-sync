@@ -1,0 +1,5 @@
+Software:
+- VSCode [p]
+- Git [p]
+- Meta Horizon Link (needed reinstall)
+- Node.js (needed perms)
