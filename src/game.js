@@ -63,7 +63,7 @@ export default {
         const distance = startPosition.distanceTo(targetPosition);
         const speed = Math.max(2, distance * 0.8);
 
-        this._vr.activeSpheres.push({ //just explain this is a push function
+        this._vr.activeSpheres.push({ //Actually nvm, you don't need to explain this too much. It's standard JS. We can just 
             mesh: sphereMesh, 
             startPosition: startPosition, 
             targetPosition: targetPosition,
@@ -74,6 +74,42 @@ export default {
             playerID: this._vr.playerID
 
         });
+
+        this.updateSpheres(delta);
+    },
+
+    updateSpheres(delta) {
+        const toRemove = [];
+
+        this._vr.activeSpheres.forEach((sphere, index) => {
+
+            //Calculate Sphere Intended Distance
+            const totalDistance = sphere.startPosition.distanceTo(sphere.targetPosition);
+            sphere.progress += delta * (sphere.speed / totalDistance);
+
+            const t = Math.min(1, sphere.progress);
+            sphere.mesh.position.lerpVectors(sphere.startPosition, sphere.targetPosition, t);
+            // What is a lerp vector??
+
+            if (t >= 1) { //If the sphere has reached its' desitnation
+                console.log('Sphere hit the screen at', sphere.canvasX, sphere.canvasY);
+                sphere.mesh.parent.remove(sphere.mesh);
+                sphere.mesh.geomtry.dispose();
+                sphere.mesh.material.dispose();
+
+                toRemove.push(index);
+
+
+            }
+
+            for (let i = toRemove.length - 1; i >= 0; i--) {
+                this._vr.activeSpheres.splice(toRemove[i], 1);
+            }
+
+        })
+            
+
+
     },
 
     // Screen handling
