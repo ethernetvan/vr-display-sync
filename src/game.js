@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { XR_BUTTONS } from 'gamepad-wrapper';
 
+const SPHERE_RADIUS = 0.02; // Do these go to the export?
+const SPHERE_COLOR = 0xffee66;
+
 export default {
     // Instance variables here
 
@@ -10,6 +13,13 @@ export default {
     // VR-side initialization hook.
     // context: { scene, camera, renderer, player, controllers, sendGameMessage }
     async startVR(context) {
+        this._vr = {};
+        this._vr.scene = context.scene;
+        this._vr.sendMessage = context.sendGameMessage;
+        this._vr.activeSpheres = [];
+        this._vr.sphereMaterial = new THREE.MeshBasicMaterial({ color: SPHERE_COLOR });
+        this._vr.playerID = 'Player-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2,5); //Creates a playername based on where they join
+
         // Called once on VR client after scene + calibration are ready.
     },
 
@@ -22,6 +32,48 @@ export default {
     // - `screenRect`: the THREE.Mesh used to represent the screen rect (optional)
     updateVR(delta, time, context) {
         // Optional per-frame VR logic
+        const hand = ['right', 'left'];
+
+        controllers.forEach((hand) => {
+            const controller = context.controllers[hand];
+            const triggerPressed = controller.gamepad.getButtonDown(XR_BUTTONS.TRIGGER);
+
+            if (triggerPressed) {
+                const screenState = context.screenState[hand];
+                if (screenState.onScreen) {
+                    console.log('Trigger pressed while pointing at screen!');
+                    // We'll spawn a sphere here next.
+
+                    this.spawnSphere(controller, screenState, context);
+                }
+            }
+        });
+
+    },
+
+    spawnSphere(controller, screenHit, context) {
+        const startPosition = controller.gripSpace.position.clone();
+        const targetPosition = screenHit.hitPoint.clone();
+        const sphereGeometry = new THREE.SphereGeometry(SPHERE_RADIUS, 12, 10);
+        const sphereMesh = new THREE.Mesh(sphereGeometry, this._vr.sphereMaterial.clone());
+
+        sphereMesh.position.copy(startPosition);
+        this._vr.scene.add(sphereMesh);
+
+        const distance = startPosition.distanceTo(targetPosition);
+        const speed = Math.max(2, distance * 0.8);
+
+        this._vr.activeSpheres.push({ //just explain this is a push function
+            mesh: sphereMesh, 
+            startPosition: startPosition, 
+            targetPosition: targetPosition,
+            progress: 0,
+            speed: speed,
+            canvasX: screenHit.canvasX, //I would change this to destinationX, destinationY
+            canvasY: screenHit.canvasY,
+            playerID: this._vr.playerID
+
+        });
     },
 
     // Screen handling
