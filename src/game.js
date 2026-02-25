@@ -155,6 +155,19 @@ export default {
         this._screen.ctx.setTransform(1, 0, 0, 1, 0, 0); // Why is this the default transform?? What are we doing???
     },
 
+    createTarget(){
+        const x = this._screen.targetRadius + Math.random() * (this._screen.width - 2 * this._screen.targetRadius);
+        const y = this._screen.targetRadius + Math.random() * (this._screen.height - 2 * this._screen.targetRadius);
+
+        this._screen.targets.push({x,y});
+    },
+
+    drawTargets(ctx){
+        const radius = this._screen.targetRadius;
+
+        
+    },
+
     // Optional per-frame Screen update. delta,time in seconds.
     // context: { canvas, sendGameMessage }
     updateScreen(delta, time, context) {
@@ -168,5 +181,6 @@ export default {
         // Handle game messages here
 
         console.log('game onMessage received', msg);
-    }
+    },
+    
 };
