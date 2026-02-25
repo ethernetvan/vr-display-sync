@@ -4,6 +4,8 @@ import { XR_BUTTONS } from 'gamepad-wrapper';
 const SPHERE_RADIUS = 0.02; // Do these go to the export?
 const SPHERE_COLOR = 0xffee66;
 
+const TARGET_RADIUS_PERCENT = 0.06;
+
 export default {
     // Instance variables here
 
@@ -48,6 +50,8 @@ export default {
                 }
             }
         });
+
+        this.updateSpheres(delta);
 
     },
 
@@ -118,7 +122,37 @@ export default {
     // Screen-side initialization.
     // context: { canvas, sendGameMessage }
     async startScreen(context) {
+        this._screen = {} //IMPORTANT: Just explain what exactly the screen canvas is 
+        this._screen.canvas = context.canvas; //Explain: I'm assuming context is everything that's in the scene. Is this explained somewhere?
+        this._screen.ctx = context.canvas.getContext('2d'); //actually ignore the two comments above this, i think the summary explains it well
+
+        this.resiveCanvas();
+
+        this._screen.targets = [];
+        this._screen.targetImage = new Image();
+        this._screen.targetImage.src = 'assets/target.png'
+
+
         // Called once on Screen after registration and canvas creation.
+    },
+
+    resizeCanvas(){
+        const canvas = this._screen.canvas;
+
+        const width = canvas.clientWidth; //explain that the client is the screen
+        const height = canvas.clientHeight;
+
+        canvas.width = width;
+        canvas.height = height;
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+
+        // Why do we update the canvas and then update the screen? Why don't we set the target radius based on the canvas 
+        this._screen.width = width;
+        this._screen.height = height;
+        this._screen.targetRadius = Math.floor(Math.min(width, height) * TARGET_RADIUS_PERCENT);
+
+        this._screen.ctx.setTransform(1, 0, 0, 1, 0, 0); // Why is this the default transform?? What are we doing???
     },
 
     // Optional per-frame Screen update. delta,time in seconds.
