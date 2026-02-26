@@ -97,6 +97,15 @@ export default {
 
             if (t >= 1) { //If the sphere has reached its' desitnation
                 console.log('Sphere hit the screen at', sphere.canvasX, sphere.canvasY);
+                this._vr.sendMessage({
+                    event: 'SHOT',
+                    canvasX: sphere.canvasX,
+                    canvasY: sphere.canvasY,
+                    player: sphere.playerId
+                });
+
+
+
                 sphere.mesh.parent.remove(sphere.mesh);
                 sphere.mesh.geomtry.dispose();
                 sphere.mesh.material.dispose();
@@ -214,6 +223,12 @@ export default {
     // Incoming messages handler
     onMessage(msg) {
         if (!msg) return;
+
+        if (!this._screen) return;
+        if (msg.event === 'SHOT') {
+            this.registerShot(msg.canvasX, msg.canvasY, msg.player);
+        }
+
 
         // Handle game messages here
 
