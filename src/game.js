@@ -59,7 +59,7 @@ export default {
         const startPosition = controller.gripSpace.position.clone();
         const targetPosition = screenHit.hitPoint.clone();
         const sphereGeometry = new THREE.SphereGeometry(SPHERE_RADIUS, 12, 10);
-        const sphereMesh = new THREE.Mesh(sphereGeometry, this._vr.sphereMaterial.clone());
+        const sphereMesh = new THREE.Mesh(sphereGeometry, this._vr.sphereMaterial.clone()); //QUESTION: Why do we clone the material here? Are we not able to reuse the same one for each sphere?
 
         sphereMesh.position.copy(startPosition);
         this._vr.scene.add(sphereMesh);
