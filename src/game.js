@@ -132,7 +132,9 @@ export default {
         this._screen.targetImage = new Image();
         this._screen.targetImage.src = 'assets/target.png'
 
-
+        for (let i = 0; i < 5; i++) {
+            this.createTarget();
+        }
         // Called once on Screen after registration and canvas creation.
     },
 
@@ -165,6 +167,27 @@ export default {
     drawTargets(ctx){
         const radius = this._screen.targetRadius;
 
+        for (const target of this._screen.targets){
+            if (this._screen.targetImage.complete) { //on finish loading image --> consider preloading? tho not necessary for a simple tutorial.
+                ctx.drawImage(
+                    this._screen.targetImage,
+                    target.x - radius,
+                    target.y - radius,
+                    radius * 2,
+                    radius * 2
+                );
+            } else {
+                // If circle not loaded --> draw pic manually
+                ctx.beginPath();
+                ctx.arc(target.x, target.y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#c00';
+                ctx.stroke();
+            }
+        }
+
         
     },
 
@@ -172,7 +195,21 @@ export default {
     // context: { canvas, sendGameMessage }
     updateScreen(delta, time, context) {
         // Optional per-frame screen logic
-    },
+        if (!this._screen) return; //if no screen ret
+
+        this.resizeCanvas();
+
+        const ctx = this._screen.ctx;
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, this._screen.canvas.width, this._screen.canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, this._screen.width, this._screen.height);
+
+        this.drawTargets(ctx);
+
+    },  //TUTORIAL: It says to test the screen right now (after implementing the targets), but I would probably link to the Testing Locally header so that it's clearer. 
+    // Tho it's common sense to npm install then run dev, the user needs to know to go to localhost:.../screen to see the targets.
 
     // Incoming messages handler
     onMessage(msg) {
