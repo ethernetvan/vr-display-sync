@@ -134,6 +134,7 @@ export default {
         this._screen = {} //IMPORTANT: Just explain what exactly the screen canvas is 
         this._screen.canvas = context.canvas; //Explain: I'm assuming context is everything that's in the scene. Is this explained somewhere?
         this._screen.ctx = context.canvas.getContext('2d'); //actually ignore the two comments above this, i think the summary explains it well
+        this._screen.scores = {};
 
         this.resiveCanvas();
 
@@ -200,6 +201,28 @@ export default {
         
     },
 
+    registerShot(x, y, playerId) {
+        // Check for target hits
+        for (const target of this._screen.targets) {
+            const dx = x - target.x;
+            const dy = y - target.y;
+            const distanceSquared = dx * dx + dy * dy;
+            const radiusSquared = this._screen.targetRadius * this._screen.targetRadius;
+
+            if (distanceSquared <= radiusSquared) {
+                this._screen.scores[playerId] = (this._screen.scores[playerId] || 0) + 1;
+                this.repositionTarget(target);
+                console.log(`${playerId} scored! Total: ${this._screen.scores[playerId]}`);
+                break;
+            }
+        }
+    },
+
+    repositionTarget(target) {
+        target.x = this._screen.targetRadius + Math.random() * (this._screen.width - 2 * this._screen.targetRadius);
+        target.y = this._screen.targetRadius + Math.random() * (this._screen.height - 2 * this._screen.targetRadius);
+    },
+
     // Optional per-frame Screen update. delta,time in seconds.
     // context: { canvas, sendGameMessage }
     updateScreen(delta, time, context) {
@@ -225,8 +248,11 @@ export default {
         if (!msg) return;
 
         if (!this._screen) return;
-        if (msg.event === 'SHOT') {
+        if (msg.event === 'SHOT') { // QUESTION: Why do we change this to message???
             this.registerShot(msg.canvasX, msg.canvasY, msg.player);
+
+            // this.registerShot(message.canvasX, message.canvasY, message.player);
+            //QUESTION: Why do we update it to message instead of leaving it as msg???
         }
 
 
