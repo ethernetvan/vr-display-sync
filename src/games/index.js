@@ -1,4 +1,5 @@
 import ballsGame, { metadata as ballsMeta } from './ballsGame.js';
+import marketingBallsGame, { metadata as marketingBallsMeta } from './marketingBallsGame.js';
 import paintGame, { metadata as paintMeta } from './paintGame.js';
 import drawGame, { metadata as drawMeta } from './drawGame.js';
 import tutorialGame, { metadata as tutorialMeta } from './tutorialGame.js';
@@ -6,6 +7,7 @@ import tutorialGame, { metadata as tutorialMeta } from './tutorialGame.js';
 // Central game registry
 export const GAMES = new Map([
     [ballsMeta.id, { game: ballsGame, metadata: ballsMeta }],
+    [marketingBallsGame.id, { game: marketingBallsGame, metadata: marketingBallsMeta }],
     [paintMeta.id, { game: paintGame, metadata: paintMeta }],
     [drawMeta.id, { game: drawGame, metadata: drawMeta }],
     [tutorialMeta.id, { game: tutorialGame, metadata: tutorialMeta }]

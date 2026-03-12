@@ -13,6 +13,14 @@
       "handMinSwipeSpeedMetersPerSec": 0.25,
       "handSwipeBallCooldownSec": 0.1
     },
+    "marketing": {
+      "displayOverlayEnabled": true,
+      "gravityMultiplier": 1,
+      "swipeForceMultiplier": 1,
+      "handTouchRadiusMeters": 0.06,
+      "handMinSwipeSpeedMetersPerSec": 0.25,
+      "handSwipeBallCooldownSec": 0.1
+    },
     "paint": {},
     "draw": {
       "drawColorHex": "#111111",
