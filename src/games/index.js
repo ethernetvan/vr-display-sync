@@ -7,7 +7,7 @@ import tutorialGame, { metadata as tutorialMeta } from './tutorialGame.js';
 // Central game registry
 export const GAMES = new Map([
     [ballsMeta.id, { game: ballsGame, metadata: ballsMeta }],
-    [marketingBallsGame.id, { game: marketingBallsGame, metadata: marketingBallsMeta }],
+    [marketingBallsMeta.id, { game: marketingBallsGame, metadata: marketingBallsMeta }],
     [paintMeta.id, { game: paintGame, metadata: paintMeta }],
     [drawMeta.id, { game: drawGame, metadata: drawMeta }],
     [tutorialMeta.id, { game: tutorialGame, metadata: tutorialMeta }]
