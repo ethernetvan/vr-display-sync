@@ -182,24 +182,6 @@ export default {
         }
     },
 
-    disposeVR(context) {
-        // Clean up VR resources
-        if (this._vr && this._vr.activeSpheres) {
-            this._vr.activeSpheres.forEach(sphere => {
-                if (sphere.mesh && sphere.mesh.parent) {
-                    sphere.mesh.parent.remove(sphere.mesh);
-                }
-                if (sphere.mesh && sphere.mesh.geometry) {
-                    sphere.mesh.geometry.dispose();
-                }
-            });
-        }
-        if (this._vr && this._vr.sphereMaterial) {
-            this._vr.sphereMaterial.dispose();
-        }
-        this._vr = null;
-    },
-
     // Screen lifecycle
     async startScreen(context) {
         const { canvas, settings, sendGameMessage } = context;
@@ -366,14 +348,6 @@ export default {
         });
         
         ctx.restore();
-    },
-
-    disposeScreen(context) {
-        // Clean up screen resources
-        if (this._screen && this._screen.teleportInterval) {
-            clearInterval(this._screen.teleportInterval);
-        }
-        this._screen = null;
     },
 
     // Message handler

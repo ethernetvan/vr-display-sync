@@ -33,6 +33,72 @@ export function getCurrentSettings() {
     return { ...currentSettings };
 }
 
+function autoCleanupVR(game, context) {
+    if (!game) return;
+
+    const vrState = game._vr;
+    if (!vrState) return;
+
+    if (context && context.scene && vrState.root) {
+        try {
+            context.scene.remove(vrState.root);
+        } catch (_e) {
+            // Best-effort cleanup for simple games.
+        }
+    }
+
+    if (Array.isArray(vrState.activeSpheres)) {
+        for (const sphere of vrState.activeSpheres) {
+            if (!sphere || !sphere.mesh) continue;
+            try {
+                if (sphere.mesh.parent) sphere.mesh.parent.remove(sphere.mesh);
+            } catch (_e) {
+                // ignore
+            }
+            if (sphere.mesh.geometry && typeof sphere.mesh.geometry.dispose === 'function') {
+                try { sphere.mesh.geometry.dispose(); } catch (_e) { /* ignore */ }
+            }
+        }
+    }
+
+    if (vrState.sphereMaterial && typeof vrState.sphereMaterial.dispose === 'function') {
+        try { vrState.sphereMaterial.dispose(); } catch (_e) { /* ignore */ }
+    }
+
+    game._vr = null;
+}
+
+function autoCleanupScreen(game) {
+    if (!game) return;
+
+    const screenState = game._screen;
+    if (screenState && screenState.teleportInterval) {
+        try { clearInterval(screenState.teleportInterval); } catch (_e) { /* ignore */ }
+    }
+
+    game._screen = null;
+}
+
+function cleanupPreviousGame(game, { vrContext = null, screenContext = null } = {}) {
+    if (!game) return;
+
+    if (vrContext) {
+        if (typeof game.disposeVR === 'function') {
+            try { game.disposeVR(vrContext); } catch (e) { console.error('game disposeVR error', e); }
+        } else {
+            autoCleanupVR(game, vrContext);
+        }
+    }
+
+    if (screenContext) {
+        if (typeof game.disposeScreen === 'function') {
+            try { game.disposeScreen(screenContext); } catch (e) { console.error('game disposeScreen error', e); }
+        } else {
+            autoCleanupScreen(game);
+        }
+    }
+}
+
 export function setActiveGame(id, { vrContext = null, screenContext = null, settings = null } = {}) {
     const nextId = String(id);
     if (activeGameId === nextId && currentGame) return;
@@ -44,12 +110,7 @@ export function setActiveGame(id, { vrContext = null, screenContext = null, sett
 
     const prev = currentGame;
     if (prev) {
-        if (vrContext && typeof prev.disposeVR === 'function') {
-            try { prev.disposeVR(vrContext); } catch (e) { console.error('game disposeVR error', e); }
-        }
-        if (screenContext && typeof prev.disposeScreen === 'function') {
-            try { prev.disposeScreen(screenContext); } catch (e) { console.error('game disposeScreen error', e); }
-        }
+        cleanupPreviousGame(prev, { vrContext, screenContext });
     }
 
     activeGameId = nextId;

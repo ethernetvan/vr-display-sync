@@ -188,10 +188,10 @@ That's it! Your game will automatically:
             - Used for pinch gestures, finger painting, direct hand interaction with virtual objects
         - settings: object containing current game settings from metadata schema
 
-- `disposeVR(context)`
-	- Called when switching away from this game in VR
-	- Clean up THREE.js objects, event listeners, intervals, etc.
-	- Prevents memory leaks when switching between games
+- `disposeVR(context)` (optional)
+    - Called when switching away from this game in VR
+    - Use this if your game creates custom THREE.js resources, event listeners, intervals, etc.
+    - For simple local/dev games, the engine does fallback cleanup of common `_vr` state even if this method is omitted
 
 - `startScreen(context)`
 	- Called once on the Screen client. `context` contains `{ canvas, sendGameMessage, settings }` and should be used to set up drawing and event handlers
@@ -204,9 +204,10 @@ That's it! Your game will automatically:
     - Note: Screen client does NOT have access to VR controller data in context - use GAME_EVENT messages via sendGameMessage to communicate from VR to screen
     - `context` contains `{ canvas, sendGameMessage, settings }`
 
-- `disposeScreen(context)`
-	- Called when switching away from this game on screen client
-	- Clean up canvas state, intervals, event listeners, etc.
+- `disposeScreen(context)` (optional)
+    - Called when switching away from this game on screen client
+    - Use this if your game creates custom screen resources (timers, listeners, retained state)
+    - For simple local/dev games, the engine does fallback cleanup of common `_screen` state even if this method is omitted
 
 ### Settings Metadata Schema
 

@@ -57,7 +57,8 @@ export default {
     },
 
     /**
-     * Called when switching away from this game in VR
+     * Optional cleanup hook when switching away from this game in VR.
+     * Keep this only if you allocate custom resources that need explicit teardown.
      * @param {Object} context - VR context
      */
     disposeVR(context) {
@@ -84,7 +85,8 @@ export default {
     },
 
     /**
-     * Called when switching away from this game on screen
+     * Optional cleanup hook when switching away from this game on screen.
+     * Keep this only if you allocate custom resources that need explicit teardown.
      * @param {Object} context - Screen context
      */
     disposeScreen(context) {

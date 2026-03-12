@@ -104,20 +104,5 @@ export default {
                 this._screen.strokes.splice(0, this._screen.strokes.length - 2000);
             }
         }
-    },
-
-    disposeVR(context) {
-        if (this._vr && this._vr.root && context && context.scene) {
-            try {
-                context.scene.remove(this._vr.root);
-            } catch (e) {
-                // ignore
-            }
-        }
-        this._vr = null;
-    },
-
-    disposeScreen(_context) {
-        this._screen = null;
     }
 };
