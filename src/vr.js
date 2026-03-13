@@ -133,6 +133,97 @@ let moveHandle = null;
 let rotateHandleLeft = null;
 let rotateHandleRight = null;
 
+function getScreenCenterVector() {
+    return new THREE.Vector3(
+        (topLeftCorner[0] + bottomRightCorner[0]) / 2,
+        (topLeftCorner[1] + bottomRightCorner[1]) / 2,
+        (topLeftCorner[2] + bottomRightCorner[2]) / 2
+    );
+}
+
+function getScreenYawRadians() {
+    return Math.atan2(bottomRightCorner[2] - topLeftCorner[2], bottomRightCorner[0] - topLeftCorner[0]);
+}
+
+function getCalibrationDimensions() {
+    const width = typeof rectXDistance === 'number' && Number.isFinite(rectXDistance)
+        ? rectXDistance
+        : Math.hypot(bottomRightCorner[0] - topLeftCorner[0], bottomRightCorner[2] - topLeftCorner[2]);
+    const height = typeof rectYDistance === 'number' && Number.isFinite(rectYDistance)
+        ? rectYDistance
+        : (topLeftCorner[1] - bottomRightCorner[1]);
+    return { width, height };
+}
+
+function buildCalibrationState() {
+    const center = getScreenCenterVector();
+    const { width, height } = getCalibrationDimensions();
+    return {
+        version: 2,
+        center: [center.x, center.y, center.z],
+        rotationY: getScreenYawRadians(),
+        size: { width, height },
+        topLeftCorner: [...topLeftCorner],
+        bottomRightCorner: [...bottomRightCorner],
+        rectXDistance: width,
+        rectYDistance: height,
+        screenWidth,
+        screenHeight,
+        aspectRatio,
+        savedAt: Date.now()
+    };
+}
+
+function applyCalibrationState(data) {
+    if (!data || !Array.isArray(data.center) || data.center.length < 3) return false;
+
+    const width = data.size && typeof data.size.width === 'number'
+        ? data.size.width
+        : data.rectXDistance;
+    const height = data.size && typeof data.size.height === 'number'
+        ? data.size.height
+        : data.rectYDistance;
+    const rotationY = typeof data.rotationY === 'number'
+        ? data.rotationY
+        : (Array.isArray(data.topLeftCorner) && Array.isArray(data.bottomRightCorner)
+            ? Math.atan2(data.bottomRightCorner[2] - data.topLeftCorner[2], data.bottomRightCorner[0] - data.topLeftCorner[0])
+            : 0);
+
+    if (!Number.isFinite(width) || !Number.isFinite(height) || !Number.isFinite(rotationY)) return false;
+
+    const center = new THREE.Vector3(data.center[0], data.center[1], data.center[2]);
+    const xDirection = new THREE.Vector3(Math.cos(rotationY), 0, Math.sin(rotationY));
+    const halfWidth = width / 2;
+    const halfHeight = height / 2;
+    const halfHorizontal = xDirection.clone().multiplyScalar(halfWidth);
+
+    topLeftCorner = [
+        center.x - halfHorizontal.x,
+        center.y + halfHeight,
+        center.z - halfHorizontal.z
+    ];
+    bottomRightCorner = [
+        center.x + halfHorizontal.x,
+        center.y - halfHeight,
+        center.z + halfHorizontal.z
+    ];
+    rectXDistance = width;
+    rectYDistance = height;
+    return true;
+}
+
+function getWidgetScaleMetrics() {
+    const width = Math.max(0.001, rectXDistance || 0.8);
+    const height = Math.max(0.001, rectYDistance || 0.45);
+    const minDimension = Math.max(0.001, Math.min(width, height));
+    const cubeSize = THREE.MathUtils.clamp(minDimension * 0.18, 0.03, 0.0825);
+    const centerSize = THREE.MathUtils.clamp(cubeSize * 1.08, 0.035, 0.0975);
+    const cornerInset = THREE.MathUtils.clamp(cubeSize * 0.8, 0.025, 0.08);
+    const rotateHeight = THREE.MathUtils.clamp(minDimension * 0.42, 0.075, 0.165);
+    const rotateWidth = THREE.MathUtils.clamp(cubeSize * 0.55, 0.024, 0.045);
+    return { cubeSize, centerSize, cornerInset, rotateHeight, rotateWidth };
+}
+
 // ---------- Utilities ----------
 function applyColorToMesh(object, hexColor) {
     object.traverse((node) => {
@@ -198,8 +289,7 @@ function spawnWidgets(scene) {
     widgetsSpawned = true;
     const center = new THREE.Vector3(0, -0.3, -0.3);
     while (widgetGroup.children.length) widgetGroup.remove(widgetGroup.children[0]);
-
-    const baseScale = 0.18 * 0.7;
+    const widgetMetrics = getWidgetScaleMetrics();
 
     const widgetUnitCube = new THREE.BoxGeometry(1, 1, 1);
 
@@ -207,9 +297,8 @@ function spawnWidgets(scene) {
     const brPos = new THREE.Vector3(0.3, -0.6, -0.3);
     const tlMesh = new THREE.Mesh(widgetUnitCube, new THREE.MeshBasicMaterial({color:0xff8800}));
     const brMesh = new THREE.Mesh(widgetUnitCube, new THREE.MeshBasicMaterial({color:0xff8800}));
-    // Slightly smaller than the center grab cube
-    tlMesh.scale.setScalar(0.12 * baseScale * 4.0);
-    brMesh.scale.setScalar(0.12 * baseScale * 4.0);
+    tlMesh.scale.setScalar(widgetMetrics.cubeSize);
+    brMesh.scale.setScalar(widgetMetrics.cubeSize);
     tlMesh.userData.type = 'scale'; tlMesh.userData.corner = 'topLeft';
     brMesh.userData.type = 'scale'; brMesh.userData.corner = 'bottomRight';
     tlMesh.position.copy(tlPos);
@@ -220,7 +309,7 @@ function spawnWidgets(scene) {
 
     const moveMaterial = new THREE.MeshBasicMaterial({ color: 0x0066ff });
     moveHandle = new THREE.Mesh(widgetUnitCube, moveMaterial);
-    moveHandle.scale.setScalar(0.12 * baseScale * 4.25);
+    moveHandle.scale.setScalar(widgetMetrics.centerSize);
     moveHandle.userData.type = 'move';
     moveHandle.position.copy(center);
     applyColorToMesh(moveHandle, 0x0066ff);
@@ -250,14 +339,14 @@ function spawnWidgets(scene) {
     const rotateBarGeometry = new THREE.BoxGeometry(0.06, 0.26, 0.06);
     const rotateBarMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
     rotateHandleLeft = new THREE.Mesh(rotateBarGeometry, rotateBarMaterial);
-    rotateHandleLeft.scale.setScalar(baseScale * 5);
+    rotateHandleLeft.scale.set(widgetMetrics.rotateWidth / 0.06, widgetMetrics.rotateHeight / 0.26, widgetMetrics.rotateWidth / 0.06);
     rotateHandleLeft.userData.type = 'rotateY';
     rotateHandleLeft.userData.side = 'left';
     applyColorToMesh(rotateHandleLeft, 0xffff00);
     widgetGroup.add(rotateHandleLeft);
 
     rotateHandleRight = new THREE.Mesh(rotateBarGeometry, rotateBarMaterial);
-    rotateHandleRight.scale.setScalar(baseScale * 5);
+    rotateHandleRight.scale.set(widgetMetrics.rotateWidth / 0.06, widgetMetrics.rotateHeight / 0.26, widgetMetrics.rotateWidth / 0.06);
     rotateHandleRight.userData.type = 'rotateY';
     rotateHandleRight.userData.side = 'right';
     applyColorToMesh(rotateHandleRight, 0xffff00);
@@ -268,6 +357,8 @@ function spawnWidgets(scene) {
 
 function updateWidgetPositions() {
     if (!widgetGroup || !screenRect) return;
+
+    const widgetMetrics = getWidgetScaleMetrics();
 
     const screenQ = new THREE.Quaternion();
     screenRect.getWorldQuaternion(screenQ);
@@ -281,9 +372,10 @@ function updateWidgetPositions() {
         if (child.userData && child.userData.type === 'scale') {
             const cornerName = child.userData.corner;
             let cornerPos = cornerName === 'topLeft' ? tl.clone() : br.clone();
+            child.scale.setScalar(widgetMetrics.cubeSize);
             
             // Move slightly toward center for visibility
-            const inward = center.clone().sub(cornerPos).normalize().multiplyScalar(0.08);
+            const inward = center.clone().sub(cornerPos).normalize().multiplyScalar(widgetMetrics.cornerInset);
             const worldPos = cornerPos.clone().add(inward);
             
             if (child.parent) {
@@ -299,6 +391,7 @@ function updateWidgetPositions() {
     });
 
     if (moveHandle && rectYDistance !== null) {
+        moveHandle.scale.setScalar(widgetMetrics.centerSize);
         const worldPos = center.clone();
         // Put the handle in the center of the screen, slightly in front of it so it's easy to ray-hit.
         if (screenRect) {
@@ -340,6 +433,7 @@ function updateWidgetPositions() {
         const xOffset = (rectXDistance / 2) + margin;
 
         if (rotateHandleLeft) {
+            rotateHandleLeft.scale.set(widgetMetrics.rotateWidth / 0.06, widgetMetrics.rotateHeight / 0.26, widgetMetrics.rotateWidth / 0.06);
             const worldPos = center.clone()
                 .add(screenXDir.clone().multiplyScalar(-xOffset))
                 .add(normal.clone().multiplyScalar(0.02));
@@ -349,6 +443,7 @@ function updateWidgetPositions() {
             rotateHandleLeft.quaternion.copy(screenQ);
         }
         if (rotateHandleRight) {
+            rotateHandleRight.scale.set(widgetMetrics.rotateWidth / 0.06, widgetMetrics.rotateHeight / 0.26, widgetMetrics.rotateWidth / 0.06);
             const worldPos = center.clone()
                 .add(screenXDir.clone().multiplyScalar(xOffset))
                 .add(normal.clone().multiplyScalar(0.02));
@@ -561,12 +656,7 @@ async function onFrame(delta, time, {scene, camera, renderer, player, controller
                     // Handle ready button click - commit calibration
                     cm.sendMessage({
                         type: 'CALIBRATION_COMMIT',
-                        message: {
-                            topLeftCorner: [...topLeftCorner],
-                            bottomRightCorner: [...bottomRightCorner],
-                            rectXDistance,
-                            rectYDistance
-                        }
+                        message: buildCalibrationState()
                     });
                     calibrated = true;
                     saveCalibration();
@@ -922,12 +1012,7 @@ function addScreenRect(scene) {
 // ---------- Calibration persistence ----------
 function saveCalibration() {
     try {
-        const data = {
-            topLeftCorner: [...topLeftCorner],
-            bottomRightCorner: [...bottomRightCorner],
-            rectXDistance,
-            rectYDistance
-        };
+        const data = buildCalibrationState();
         localStorage.setItem('vr-calibration', JSON.stringify(data));
         console.log('Calibration saved to localStorage');
     } catch (e) {
@@ -941,17 +1026,21 @@ function loadCalibration() {
         if (!stored) return false;
         
         const data = JSON.parse(stored);
+        if (applyCalibrationState(data)) {
+            console.log('Calibration loaded from localStorage');
+            return true;
+        }
+
         if (!data.topLeftCorner || !data.bottomRightCorner || 
             typeof data.rectXDistance !== 'number' || typeof data.rectYDistance !== 'number') {
             return false;
         }
-        
+
         topLeftCorner = [...data.topLeftCorner];
         bottomRightCorner = [...data.bottomRightCorner];
         rectXDistance = data.rectXDistance;
         rectYDistance = data.rectYDistance;
-        
-        console.log('Calibration loaded from localStorage');
+        console.log('Calibration loaded from localStorage (legacy format)');
         return true;
     } catch (e) {
         console.warn('Failed to load calibration:', e);

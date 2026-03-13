@@ -429,12 +429,6 @@ if (handState && handState.right.tracked) {
     - Exports GAMES Map with all registered games
     - Provides helper functions for getting settings by tab/game
 
-- `src/games/ballsGame.js`, `paintGame.js`, `drawGame.js`
-	- Example game implementations showing different features
-    - ballsGame: Physics, hand swipe interaction, overlay UI
-    - paintGame: Controller-based painting
-    - drawGame: Pinch gesture and trigger-based drawing
-
 - `src/gameAPI.js`
 	- API wrapper that connects game lifecycle methods with VR/screen clients
     - Manages active game switching

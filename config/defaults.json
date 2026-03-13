@@ -27,6 +27,30 @@
       "drawThicknessPx": 20,
       "drawAlpha": 0.22
     },
+    "sand": {
+      "sandBrushRadiusPx": 14,
+      "sandSpawnChance": 0.4,
+      "sandColorHex": "#d6b36a",
+      "sandCellSizePx": 4,
+      "sandStepsPerFrame": 2
+    },
+    "shapes": {
+      "shapesSpawnIntervalSec": 1.1,
+      "shapesMaxActive": 4,
+      "shapesTravelDurationSec": 3.2,
+      "shapesBaseSizePx": 150,
+      "shapesSizeVariancePx": 48,
+      "shapesTravelDistancePx": 140
+    },
+    "sugar": {
+      "sugarDropPerSecond": 48,
+      "sugarEmitterWidthPx": 20,
+      "sugarLineThicknessPx": 8,
+      "sugarColorHex": "#efe2bd",
+      "sugarLineColorHex": "#5b4934",
+      "sugarCellSizePx": 4,
+      "sugarStepsPerFrame": 2
+    },
     "tutorial": {
       "sphereSpeed": 3,
       "sphereColor": "#ffee66",

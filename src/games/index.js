@@ -2,6 +2,9 @@ import ballsGame, { metadata as ballsMeta } from './ballsGame.js';
 import marketingBallsGame, { metadata as marketingBallsMeta } from './marketingBallsGame.js';
 import paintGame, { metadata as paintMeta } from './paintGame.js';
 import drawGame, { metadata as drawMeta } from './drawGame.js';
+import sandGame, { metadata as sandMeta } from './sandGame.js';
+import shapesGame, { metadata as shapesMeta } from './shapesGame.js';
+import sugarSugarGame, { metadata as sugarSugarMeta } from './sugarSugarGame.js';
 import tutorialGame, { metadata as tutorialMeta } from './tutorialGame.js';
 
 // Central game registry
@@ -10,6 +13,9 @@ export const GAMES = new Map([
     [marketingBallsMeta.id, { game: marketingBallsGame, metadata: marketingBallsMeta }],
     [paintMeta.id, { game: paintGame, metadata: paintMeta }],
     [drawMeta.id, { game: drawGame, metadata: drawMeta }],
+    [sandMeta.id, { game: sandGame, metadata: sandMeta }],
+    [shapesMeta.id, { game: shapesGame, metadata: shapesMeta }],
+    [sugarSugarMeta.id, { game: sugarSugarGame, metadata: sugarSugarMeta }],
     [tutorialMeta.id, { game: tutorialGame, metadata: tutorialMeta }]
 ]);
 
@@ -75,6 +81,9 @@ export function getSettingsByTab() {
         physics: [],
         hands: [],
         draw: [],
+        sand: [],
+        shapes: [],
+        sugar: [],
         paint: []
     };
 
