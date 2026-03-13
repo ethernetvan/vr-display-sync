@@ -5,3 +5,5 @@ dist/
 .cert/
 config/.server-config.json
 config/*.pem
+run-dev-https.bat
+run-dev-https.ps1

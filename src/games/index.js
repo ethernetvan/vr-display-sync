@@ -6,6 +6,7 @@ import sandGame, { metadata as sandMeta } from './sandGame.js';
 import shapesGame, { metadata as shapesMeta } from './shapesGame.js';
 import sugarSugarGame, { metadata as sugarSugarMeta } from './sugarSugarGame.js';
 import tutorialGame, { metadata as tutorialMeta } from './tutorialGame.js';
+import fingerspellingGame, { metadata as fingerspellingMeta } from './fingerspellingGame.js';
 
 // Central game registry
 export const GAMES = new Map([
@@ -16,7 +17,8 @@ export const GAMES = new Map([
     [sandMeta.id, { game: sandGame, metadata: sandMeta }],
     [shapesMeta.id, { game: shapesGame, metadata: shapesMeta }],
     [sugarSugarMeta.id, { game: sugarSugarGame, metadata: sugarSugarMeta }],
-    [tutorialMeta.id, { game: tutorialGame, metadata: tutorialMeta }]
+    [tutorialMeta.id, { game: tutorialGame, metadata: tutorialMeta }],
+    [fingerspellingMeta.id, { game: fingerspellingGame, metadata: fingerspellingMeta }]
 ]);
 
 // Default game to load on startup

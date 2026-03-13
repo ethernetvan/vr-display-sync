@@ -72,32 +72,46 @@ export const metadata = {
 
 // Export game object with lifecycle methods
 export default {
+    // Store all VR-side runtime state here (meshes, materials, arrays, etc.)
+    // Initialized in startVR, nulled out in disposeVR.
+    _vr: null,
+
+    // Store all screen-side runtime state here (canvas context, timers, scores, etc.)
+    // Initialized in startScreen, nulled out in disposeScreen.
+    _screen: null,
+
     // VR lifecycle methods
     async startVR(context) {
-        // Initialize VR-specific state
+        this._vr = {};
+        // Attach everything your VR code needs: this._vr.myMesh = ...
         // Access settings via context.settings.myNumberSetting
     },
 
     updateVR(delta, time, context) {
+        if (!this._vr) return;
         // Update every frame in VR
         // Use context.settings for current values
     },
 
     disposeVR(context) {
-        // Clean up VR resources when switching games
+        // Dispose any custom THREE.js resources here, then clear state
+        this._vr = null;
     },
 
     // Screen lifecycle methods
     async startScreen(context) {
-        // Initialize screen canvas
+        this._screen = {};
+        // Attach everything your screen code needs: this._screen.ctx = ...
     },
 
     updateScreen(delta, time, context) {
+        if (!this._screen) return;
         // Update screen every frame
     },
 
     disposeScreen(context) {
-        // Clean up screen resources
+        // Clear any timers or listeners here, then clear state
+        this._screen = null;
     },
 
     // Network message handler
@@ -106,6 +120,8 @@ export default {
     }
 };
 ```
+
+**Why `_vr` and `_screen`?** Game modules are JavaScript singletons — the same object is reused every time a player switches to your game. If you store state directly on `this` (`this.myMesh = ...`), it persists across game switches and causes bugs. Bundling all state into `this._vr` and `this._screen` means you can reset everything cleanly by setting them to `null`. The `if (!this._vr) return;` guard in update methods also prevents crashes if the game is switched mid-frame. The engine additionally reads these objects to do automatic fallback cleanup of common resources when switching games.
 
 **2. Register your game** in `src/games/index.js`:
 

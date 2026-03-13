@@ -32,7 +32,14 @@ export const metadata = {
 };
 
 export default {
+    // All VR-side runtime state lives here (meshes, materials, active objects, etc.).
+    // Set to an object in startVR, back to null in disposeVR.
+    // Using _vr instead of putting things directly on 'this' keeps state clean
+    // across game switches, since this module is a singleton.
     _vr: null,
+
+    // All screen-side runtime state lives here (canvas context, timers, scores, etc.).
+    // Set to an object in startScreen, back to null in disposeScreen.
     _screen: null,
 
     /**
@@ -42,6 +49,7 @@ export default {
      *                             handState, settings }
      */
     async startVR(context) {
+        // Attach anything your VR code needs: this._vr.myMesh = ...
         this._vr = {};
         console.log('Game started with settings:', context.settings);
     },
@@ -53,7 +61,7 @@ export default {
      * @param {Object} context - Same as startVR, updated each frame
      */
     updateVR(delta, time, context) {
-        if (!this._vr) return;
+        if (!this._vr) return; // Guard against being called before startVR or after dispose
     },
 
     /**
@@ -62,6 +70,7 @@ export default {
      * @param {Object} context - VR context
      */
     disposeVR(context) {
+        // Dispose custom THREE.js resources here (geometry, material, etc.) before nulling
         this._vr = null;
     },
 
@@ -70,6 +79,7 @@ export default {
      * @param {Object} context - { canvas, sendGameMessage, settings }
      */
     async startScreen(context) {
+        // Attach anything your screen code needs: this._screen.ctx = canvas.getContext('2d')
         this._screen = {};
         console.log('Screen started with settings:', context.settings);
     },
@@ -81,7 +91,7 @@ export default {
      * @param {Object} context - { canvas, sendGameMessage, settings }
      */
     updateScreen(delta, time, context) {
-        if (!this._screen) return;
+        if (!this._screen) return; // Guard against being called before startScreen or after dispose
     },
 
     /**
@@ -90,6 +100,7 @@ export default {
      * @param {Object} context - Screen context
      */
     disposeScreen(context) {
+        // Clear any timers or listeners here (e.g. clearInterval(this._screen.myInterval))
         this._screen = null;
     },
 

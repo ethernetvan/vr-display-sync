@@ -131,7 +131,7 @@ export default {
 - We export `metadata` with our game's settings schema
 - Settings include sphere speed, color, and target count
 - The game object has all required lifecycle methods
-- We initialize state variables to null (filled in on start)
+- `_vr` and `_screen` start as `null` and get assigned an object in their respective `start` methods — all runtime state (meshes, timers, scores, etc.) lives inside these objects. Because the game module is a singleton reused across game switches, storing state directly on `this` would bleed between sessions. Resetting to `null` in `dispose` wipes everything cleanly in one line, and the `if (!this._vr) return;` guard in update methods prevents crashes during the transition
 
 ### 1.2 Register the Game
 
